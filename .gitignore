@@ -1,0 +1,41 @@
+# Node dependencies & Frontend
+node_modules/
+**/node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/build/
+frontend/dist/
+.env.local
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Qdrant Database Storage (Lock files & indexes)
+qdrant_db/
+**/qdrant_db/
+*.lock
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Output & Temporary Media Files
+*.mp4
+*.avi
+*.jpg
+*.png
+violations/
+**/violations/
+media/
+**/media/
+
+# Weights / Models (Agar local downloaded hon)
+*.pt
+*.onnx
+*.engine
+
+# Environment / Secret Keys
+.env
