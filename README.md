@@ -406,40 +406,20 @@ The alert can then be displayed on the frontend dashboard.
 
 ```text
 AI-Vehicle-Tracking-and-Wrong-Way-Detection-System/
-│
 ├── backend/
-│   ├── main.py
-│   ├── pipeline.py
-│   ├── requirements.txt
-│   │
-│   ├── models/
-│   │   ├── yolo model
-│   │   └── reid model
-│   │
-│   ├── videos/
-│   │   └── traffic.mp4
-│   │
-│   ├── screenshots/
-│   │   └── detected vehicle images
-│   │
-│   └── qdrant_db/
-│       └── local vector database
-│
+│   ├── main.py          # API entry point & real-time server logic
+│   ├── pipeline.py      # Core vision, tracking, and Qdrant pipeline
+│   └── requirements.txt # Python dependencies
 ├── frontend/
 │   ├── app/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   │
-│   ├── public/
-│   ├── package.json
+│   │   ├── globals.css  # Global styles
+│   │   ├── layout.tsx   # Root layout wrapper
+│   │   └── page.tsx     # Live dashboard & controls
+│   ├── package.json     # Frontend dependencies & scripts
 │   ├── tailwind.config.js
 │   └── tsconfig.json
-│
-├── .gitignore
-├── README.md
-└── LICENSE
-```
+├── .gitignore           # Git ignore rules
+└── README.md            # Project documentation
 
 ---
 
