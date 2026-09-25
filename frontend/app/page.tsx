@@ -125,11 +125,13 @@ export default function Home() {
             </h2>
 
             {currentVideo ? (
-              <img
-                src={`${API_BASE_URL}/api/v1/videos/stream/${currentVideo.video_id}`}
-                alt="Real-Time Tracking Stream"
-                className="w-full h-auto rounded-lg border border-slate-700 bg-black"
-              />
+              <div className="video-player-wrapper border border-slate-700 rounded-lg">
+                <img
+                  src={`${API_BASE_URL}/api/v1/videos/stream/${currentVideo.video_id}`}
+                  alt="Real-Time Tracking Stream"
+                  className="stream-media rounded-lg"
+                />
+              </div>
             ) : (
               <div className="h-80 flex items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-lg">
                 Upload a video to display live tracking.

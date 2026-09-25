@@ -34,10 +34,29 @@ body {
   background: #475569;
 }
 
-/* Video element rendering constraints */
-video {
+/* Stream feed, video, and canvas constraints (fixes vertical scaling issues) */
+video, canvas, .stream-media {
   outline: none;
   background-color: #020617;
+  max-width: 100%;
+  max-height: 70vh;       /* Caps the height so vertical videos don't dominate the screen */
+  width: auto;            /* Auto adjusts width for portrait feeds */
+  height: auto;           /* Auto adjusts height for landscape feeds */
+  object-fit: contain;    /* Prevents distortion and awkward stretching */
+  display: block;
+  margin: 0 auto;         /* Centers the stream */
+}
+
+/* Responsive container wrapper */
+.video-player-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #020617;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  max-height: 70vh;
 }
 
 /* Glassmorphism subtle overlay helper class */
