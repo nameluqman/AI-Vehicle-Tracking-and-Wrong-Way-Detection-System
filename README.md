@@ -58,37 +58,38 @@ The system features a **FastAPI** backend for video processing and vector databa
 ## 🏗️ Architecture Overview
 
 ```text
-[ Video Stream / File Input ]
-
-              │
-
-              ▼
-
-    [ YOLO11 + ByteTrack ] ──(Detections & Bounding Boxes)
-
-              │
-
-              ▼
-
-   [ OSNet Feature Extractor ] ──(512-dim Embeddings)
-
-              │
-
-              ▼
-
-   [ Qdrant Vector DB ] ──(Cosine Similarity Match / Assign Re-ID)
-
-              │
-
-              ▼
-
- [ Trajectory & Line Calibration Engine ] ──(Wrong-Way Check)
-
-              │
-
-              ▼
-
-[ FastAPI Stream / Next.js Dashboard ] ──(Real-time Canvas Overlay)
+[ Video / Camera Stream ]
+           │
+           ▼
+ [ 1. Frame Ingestion ] ────── Resizes to 1280x720 & draws lane lines
+           │
+           ▼
+ [ 2. YOLO11 Detection ] ───── Detects vehicles at high resolution (imgsz=1280)
+           │
+           ▼
+  [ 3. ByteTrack ] ────────── Tracks vehicle centroids across frames
+           │
+           ▼
+ [ 4. OSNet Re-ID ] ────────── Extracts 512-dim feature vector per vehicle
+           │
+           ▼
+[ 5. Qdrant Vector DB ] ────── Matches vector (Cosine >= 0.95) to assign Global ID
+           │
+           ▼
+[ 6. Trajectory Check ] ────── Measures Δy direction against lane calibration
+           │
+           ▼
+[ 7. Wrong-Way Trigger ] ──── If Wrong Way (Counter >= 8):
+           │                   ├─ Saves cropped snapshot to /media/violations/
+           │                   └─ Logs violation JSON record to FastAPI
+           │
+           ▼
+[ 8. Frame Annotator ] ────── Green = Normal | Red = WRONG WAY
+           │
+           ▼
+[ 9. Next.js TSX Frontend ] ── Renders MJPEG stream & UI components:
+                               ├─ page.tsx (Live Dashboard & Feed Monitor)
+                               ├─ LaneCalibration.tsx (Interactive Canvas)
 ```
 
 ## 🧰 Tech Stack
