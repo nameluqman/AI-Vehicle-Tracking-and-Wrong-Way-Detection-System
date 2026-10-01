@@ -1,12 +1,20 @@
 <div align="center">
 
 # 🚗 AI Vehicle Tracking & Wrong-Way Detection System
+</div>
 
+# ✨ Wrong way vehicle detection Image
+
+<div align="center">
 <img src="image.png" alt="System Dashboard" width="90%"/>
+</div>
 
-# Poster OF AI Vehicle Tracking & Wrong-Way Detection System
+# ✨ Poster OF AI Vehicle Tracking & Wrong-Way Detection System
+<div align="center">
 <img src="AI Vehicle Tracking README Poster.png" alt="System Dashboard" width="90%"/>
+</div>
 
+<div align="center">
 
 <br/>
 
