@@ -1,375 +1,125 @@
-# AI Vehicle Tracking & Wrong-Way Detection System
+# 🚀 AI-Driven Intelligent Traffic & Wrong-Way Detection System
 
-An end-to-end **AI-powered computer vision system** for real-time vehicle detection, multi-object tracking, vehicle re-identification (ReID), trajectory analysis, and wrong-way driving detection.
+> **Enterprise-grade real-time computer vision platform for intelligent traffic monitoring, multi-lane wrong-way violation detection, and cross-stream vehicle re-identification.**
 
-The system combines **YOLO**, **ByteTrack**, **ResNet-18**, **Qdrant Vector Database**, **FastAPI**, and **Next.js / TypeScript** to create a complete intelligent traffic-monitoring solution.
-
----
-
-## 📌 Project Overview
-
-The **AI Vehicle Tracking & Wrong-Way Detection System** processes traffic video and automatically identifies and tracks vehicles while analyzing their movement direction.
-
-The system is designed to answer:
-
-- Where are the vehicles?
-- What type of vehicle is detected?
-- Which vehicle is the same vehicle across consecutive frames?
-- What is the vehicle's movement direction?
-- Does the vehicle match a previously observed vehicle?
-- Is the vehicle moving against the expected traffic direction?
-- When was the wrong-way event detected?
-- Which vehicle caused the violation?
-
-### High-Level Pipeline
-
-```text
-                    VIDEO INPUT
-                         │
-                         ▼
-                ┌─────────────────┐
-                │  YOLO Detector  │
-                │ Vehicle Detection│
-                └────────┬────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │    ByteTrack    │
-                │ Vehicle Tracking│
-                └────────┬────────┘
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-              ▼                     ▼
-       Vehicle Bounding Box    Vehicle Trajectory
-              │                     │
-              ▼                     ▼
-        ┌──────────────┐     ┌─────────────────┐
-        │  ResNet-18   │     │ Direction       │
-        │ Feature      │     │ Analysis        │
-        │ Extraction   │     └────────┬────────┘
-        └──────┬───────┘              │
-               │                      ▼
-               ▼              ┌─────────────────┐
-        ┌──────────────┐      │ Wrong-Way       │
-        │ Qdrant       │      │ Detection       │
-        │ Vector DB    │      └────────┬────────┘
-        └──────┬───────┘               │
-               │                       │
-               └───────────┬───────────┘
-                           ▼
-                  ┌─────────────────┐
-                  │     FastAPI      │
-                  │     Backend      │
-                  └────────┬─────────┘
-                           │
-                           ▼
-                  ┌─────────────────┐
-                  │ Next.js Dashboard│
-                  └─────────────────┘
-```
+An enterprise-grade, real-time computer vision and deep learning platform engineered for autonomous traffic monitoring, multi-lane wrong-way violation detection, and cross-stream vehicle re-identification.
 
 ---
 
-# 🚀 Main Features
-
-## 1. Vehicle Detection
-
-The system uses **YOLO** for real-time object detection.
-
-It can detect supported road vehicles such as:
-
-- Cars
-- Trucks
-- Buses
-- Motorcycles
-- Vans
-- Other supported vehicle classes
-
-For every detection, YOLO provides:
+## 📌 System Architecture & Pipeline
 
 ```text
-Bounding Box
-Confidence Score
-Class ID
-Vehicle Class
+       [ Input Video File / Live Video Stream ]
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│               1. ORB Camera Stabilizer                 │
+│  (Neutralizes camera bumps, vibrations, and drift)     │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│           2. YOLOv11n + ByteTrack Engine               │
+│  (Detects target vehicles and tracks persistent IDs)   │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│       3. CLIP Re-ID Extractor & Qdrant Vector DB       │
+│  (Computes 512-D embeddings for cross-stream ReID)     │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│        4. ROI Polygon & Edge Boundary Filtering        │
+│  (Isolates active roadways & filters background noise) │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│       5. Trajectory History & EMA Smoothing             │
+│  (Smooths center points to calculate vectors & speed)  │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│   6. K-Means Traffic Calibration & Adaptive Detection  │
+│  (Clusters initial flows & detects inverse movement)   │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│   7. Violation Flagging & Evidence Archiving           │
+│  (Captures high-res JPEGs & builds structured JSON logs)│
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│          8. OpenCV Rendering & HUD Overlays            │
+│  (Draws persistent Red boxes for violators & HUD)      │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+         ┌────────────────┴────────────────┐
+         ▼                                 ▼
+┌──────────────────┐             ┌─────────────────────┐
+│  Processed Video │             │  Live MJPEG Stream  │
+│    File (.mp4)   │             │   (Web Dashboard)   │
+└──────────────────┘             └─────────────────────┘
 ```
 
 ---
 
-## 2. Multi-Object Tracking
+# 🌟 Core Features
 
-After detecting vehicles, the system uses **ByteTrack** to maintain vehicle identities across frames.
+### 1. 🎥 ORB Camera Stabilization
 
-Without tracking:
+Eliminates false motion triggers caused by wind drift, camera shake, or structural vibrations.
 
-```text
-Frame 1 → Car
-Frame 2 → Car
-Frame 3 → Car
-```
+### 2. 🚗 YOLOv11n & ByteTrack
 
-The system cannot reliably determine whether these are the same vehicle.
+Real-time multi-class vehicle detection covering:
 
-With ByteTrack:
+* Cars
+* Trucks
+* Buses
+* Motorcycles
 
-```text
-Frame 1 → Car → ID 1
-Frame 2 → Car → ID 1
-Frame 3 → Car → ID 1
-Frame 4 → Car → ID 1
-```
+ByteTrack provides robust tracking persistence across occlusions.
 
-Example:
+### 3. 🧠 CLIP Visual Re-Identification
 
-```text
-ID 1 → Car
-ID 2 → Truck
-ID 3 → Bus
-ID 4 → Motorcycle
-```
+Leverages vision-language embeddings to uniquely identify vehicle appearances across independent streams and camera angles.
 
----
+### 4. 🗄️ Embedded Qdrant Vector Database
 
-## 3. Vehicle Trajectory Tracking
+Provides high-performance similarity search for fast, persistent vehicle re-identification payload matching.
 
-For every tracked vehicle, the system can maintain its position over time.
+### 5. 📐 Dynamic ROI & Boundary Filtering
 
-Example:
+Masks irrelevant regions such as:
 
-```text
-Vehicle ID: 12
+* Sidewalks
+* Background clutter
+* Non-road areas
 
-Frame 100 → (450, 250)
-Frame 110 → (452, 270)
-Frame 120 → (455, 292)
-Frame 130 → (458, 315)
-```
+using polygon mapping and edge clipping checks.
 
-These points form a trajectory that can be used to estimate movement direction.
+### 6. 📊 Unsupervised K-Means Traffic Calibration
 
----
+Automatically learns dominant multi-lane directional flows during startup without requiring manual road orientation configuration.
 
-## 4. Wrong-Way Detection
+### 7. ⚡ Adaptive Wrong-Way Verification
 
-Wrong-way detection analyzes the direction in which a tracked vehicle is moving.
+Uses:
 
-For example, if the expected traffic flow is:
+* Exponential Moving Average (EMA) smoothing
+* Directional cosine similarity
 
-```text
-       ↓
-       ↓
-       ↓
-       ↓
-```
+to catch inverse movement with zero false alarms.
 
-and a vehicle moves:
+### 8. 📸 Automated Evidence Archiving
 
-```text
-       ↑
-       ↑
-       ↑
-       ↑
-```
-
-the vehicle is moving against the expected direction.
-
-The general pipeline is:
-
-```text
-Vehicle Detection
-        ↓
-Vehicle Tracking
-        ↓
-Position History
-        ↓
-Trajectory Calculation
-        ↓
-Movement Direction
-        ↓
-Compare With Road Direction
-        ↓
-Wrong-Way Decision
-        ↓
-Alert
-```
-
-To reduce false positives, direction should be calculated from multiple frames rather than from a single frame.
-
----
-
-## 5. ResNet-18 Vehicle Re-Identification
-
-The system uses **ResNet-18** as a visual feature extractor for vehicle crops.
-
-Instead of using ResNet-18 only for classification, it can generate feature embeddings representing visual characteristics of a vehicle.
-
-Pipeline:
-
-```text
-Vehicle Bounding Box
-        ↓
-Crop Vehicle
-        ↓
-Resize / Preprocess
-        ↓
-ResNet-18
-        ↓
-Feature Vector
-        ↓
-L2 Normalization
-        ↓
-Qdrant
-```
-
-A feature vector can conceptually look like:
-
-```text
-[
-    0.123,
-    0.452,
-    0.821,
-    0.091,
-    ...
-]
-```
-
----
-
-## 6. Qdrant Vector Database
-
-The system uses **Qdrant** to store and search vehicle embeddings.
-
-Example:
-
-```text
-Current Vehicle
-      │
-      ▼
-ResNet-18 Embedding
-      │
-      ▼
-Qdrant Similarity Search
-      │
-      ├── Vehicle A → 0.93
-      ├── Vehicle B → 0.81
-      └── Vehicle C → 0.52
-```
-
-Vector similarity can be used to support vehicle re-identification across frames or cameras.
-
----
-
-## 7. Vehicle Re-Identification Workflow
-
-```text
-Detected Vehicle
-       ↓
-Vehicle Crop
-       ↓
-Feature Extraction
-       ↓
-ResNet-18 Embedding
-       ↓
-Normalize Vector
-       ↓
-Store in Qdrant
-       ↓
-Future Vehicle
-       ↓
-Extract New Embedding
-       ↓
-Search Qdrant
-       ↓
-Find Potential Match
-```
-
-ReID can help when a vehicle temporarily disappears from the camera view and later appears again.
-
----
-
-## 8. Wrong-Way Alerts
-
-When the system confirms that a tracked vehicle is moving in the opposite direction, it can generate an alert.
-
-Example:
-
-```text
-================================
-        WRONG-WAY ALERT
-================================
-
-Vehicle ID     : 17
-Vehicle Type   : Car
-Confidence     : 94%
-Direction      : Opposite
-Status         : WRONG WAY
-
-================================
-```
-
-The alert can then be displayed on the frontend dashboard.
-
----
-
-# 🏗️ System Architecture
-
-```text
-┌─────────────────────────────────────────────┐
-│                 VIDEO INPUT                 │
-│                                             │
-│       MP4 / Camera / RTSP Stream            │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│                  YOLO                       │
-│                                             │
-│ Vehicle Detection                           │
-│ Bounding Boxes                              │
-│ Confidence Scores                           │
-│ Vehicle Classes                             │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│               ByteTrack                    │
-│                                             │
-│ Multi-Object Tracking                       │
-│ Persistent Vehicle IDs                      │
-│ Vehicle Trajectories                        │
-└──────────────────────┬──────────────────────┘
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-             ▼                   ▼
-┌──────────────────────┐ ┌──────────────────────┐
-│    ResNet-18         │ │ Direction Analysis   │
-│                      │ │                      │
-│ Vehicle Embeddings   │ │ Trajectory Analysis │
-└──────────┬───────────┘ └──────────┬───────────┘
-           │                        │
-           ▼                        ▼
-┌──────────────────────┐ ┌──────────────────────┐
-│      Qdrant          │ │  Wrong-Way Detector  │
-│                      │ │                      │
-│ Vector Storage       │ │ Direction Comparison │
-│ Similarity Search    │ │ Alert Generation     │
-└──────────┬───────────┘ └──────────┬───────────┘
-           │                        │
-           └───────────┬────────────┘
-                       ▼
-              ┌──────────────────┐
-              │     FastAPI      │
-              │     Backend      │
-              └────────┬─────────┘
-                       │
-                       ▼
-              ┌──────────────────┐
-              │    Next.js       │
-              │    Dashboard     │
-              └──────────────────┘
-```
+Instantly captures high-resolution snapshots and generates structured JSON audit logs for all confirmed violations.
 
 ---
 
@@ -377,946 +127,360 @@ The alert can then be displayed on the frontend dashboard.
 
 ## Backend
 
-| Technology | Purpose |
-|---|---|
-| Python | Main programming language |
-| FastAPI | Backend API |
-| PyTorch | Deep learning |
-| OpenCV | Video processing |
-| Ultralytics YOLO | Vehicle detection |
-| ByteTrack | Multi-object tracking |
-| Torchvision | ResNet-18 |
-| Qdrant | Vector database |
-| NumPy | Numerical processing |
+| Technology                 | Purpose                                 |
+| -------------------------- | --------------------------------------- |
+| **Python 3.10+**           | Core programming language               |
+| **FastAPI**                | Async REST API & MJPEG streaming        |
+| **PyTorch**                | Deep learning framework                 |
+| **Ultralytics YOLOv11**    | Vehicle detection                       |
+| **OpenCV**                 | Computer vision & video processing      |
+| **ORB**                    | Camera stabilization                    |
+| **Open_CLIP**              | Visual embedding extraction             |
+| **Qdrant Vector Database** | Vector storage & similarity retrieval   |
+| **NumPy / SciPy**          | Numerical and spatial matrix operations |
 
 ## Frontend
 
-| Technology | Purpose |
-|---|---|
-| Next.js | Frontend framework |
-| React | UI |
-| TypeScript | Type-safe JavaScript |
-| Tailwind CSS | Styling |
-| Node.js | JavaScript runtime |
-| npm | Package manager |
+| Technology       | Purpose                          |
+| ---------------- | -------------------------------- |
+| **Next.js**      | Modern server-side rendered UI   |
+| **React**        | Interactive dashboard            |
+| **TypeScript**   | Type-safe client architecture    |
+| **Tailwind CSS** | Responsive utility-first styling |
 
 ---
 
-# 📁 Project Structure
+# 📁 Project Directory Structure
 
 ```text
 AI-Vehicle-Tracking-and-Wrong-Way-Detection-System/
+│
 ├── backend/
-│   ├── main.py          # API entry point & real-time server logic
-│   ├── pipeline.py      # Core vision, tracking, and Qdrant pipeline
-│   └── requirements.txt # Python dependencies
+│   ├── pipeline.py
+│   │   └── Core vision pipeline
+│   │       (Stabilizer, ReID, K-Means, Tracking)
+│   │
+│   ├── main.py
+│   │   └── FastAPI application and endpoint routing
+│   │
+│   └── requirements.txt
+│       └── Python package dependencies
+│
 ├── frontend/
 │   ├── app/
-│   │   ├── globals.css  # Global styles
-│   │   ├── layout.tsx   # Root layout wrapper
-│   │   └── page.tsx     # Live dashboard & controls
-│   ├── package.json     # Frontend dependencies & scripts
+│   │   ├── globals.css
+│   │   │   └── Tailored UI styling & design tokens
+│   │   │
+│   │   ├── layout.tsx
+│   │   │   └── Root application layout wrapper
+│   │   │
+│   │   └── page.tsx
+│   │       └── Interactive monitoring dashboard & control center
+│   │
+│   ├── package.json
+│   │   └── Frontend npm dependencies & build scripts
+│   │
 │   ├── tailwind.config.js
+│   │   └── Styling configurations
+│   │
 │   └── tsconfig.json
-├── .gitignore           # Git ignore rules
-└── README.md            # Project documentation
+│       └── TypeScript compiler settings
+│
+├── .gitignore
+│
+└── README.md
+    └── Project technical documentation
+```
 
 ---
 
-# 📋 Requirements
-
-Before running the project, install:
-
-- Python 3.10 or higher
-- Node.js 18 or higher
-- npm
-- Git
-- Qdrant
-- OpenCV-compatible video support
-
-A GPU is recommended for faster deep-learning inference, but CPU execution is also possible.
-
----
-
-# 💻 Installation
+# ⚙️ Installation & Setup
 
 ## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/nameluqman/AI-Vehicle-Tracking-and-Wrong-Way-Detection-System.git
+
 cd AI-Vehicle-Tracking-and-Wrong-Way-Detection-System
 ```
 
 ---
 
-# 🐍 Backend Installation
+## 2. Backend Setup
 
-Enter the backend directory:
+Navigate to the backend directory:
 
 ```bash
 cd backend
 ```
 
-## 2. Create Virtual Environment
+### Create and activate virtual environment
 
-### Windows
+For Windows PowerShell:
 
 ```powershell
 python -m venv venv
-```
-
-Activate:
-
-```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks activation:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-Then:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-### Linux / macOS
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
----
-
-# 📦 3. Install Python Dependencies
-
-Make sure the virtual environment is activated:
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Check installed packages:
-
-```bash
-pip list
-```
-
----
-
-# ▶️ 4. Start Backend
-
-If you are inside the `backend` directory:
+### Run FastAPI development server
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The backend should be available at:
+Backend runs locally at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-FastAPI Swagger documentation:
+---
+
+## 3. Frontend Setup
+
+Open a separate terminal window and navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+
+### Install packages
+
+```bash
+npm install
+```
+
+### Start development server
+
+```bash
+npm run dev
+```
+
+Frontend runs locally at:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# 🔌 API Documentation
+
+Once the backend service is running, interactive API documentation is available through FastAPI.
+
+### Swagger UI
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-ReDoc:
+### ReDoc
 
 ```text
 http://127.0.0.1:8000/redoc
 ```
 
-If you start the server from the project root instead:
+---
 
-```bash
-uvicorn backend.main:app --reload
-```
+# 💡 Best Practices for Testing
+
+For optimal wrong-way detection performance:
+
+### 🎥 Use Elevated or Top-Down Footage
+
+Utilize elevated or top-down traffic camera footage.
+
+### 🛣️ Clear Lane Delineation
+
+Ensure clear lane delineation and stable vehicle trajectories.
+
+### 📺 Recommended Resolution
+
+Verify that the camera stream resolution is at least **720p** for high-accuracy CLIP feature extractions.
 
 ---
 
-# 🌐 Frontend Installation
-
-Open a second terminal.
-
-From the project root:
-
-```bash
-cd frontend
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
----
-
-# ▶️ Start Frontend
-
-Run:
-
-```bash
-npm run dev
-```
-
-The frontend will normally run at:
+# 🔄 End-to-End Processing Flow
 
 ```text
-http://localhost:3000
+Input Video / Live Stream
+          │
+          ▼
+   ORB Stabilization
+          │
+          ▼
+ YOLOv11n Detection
+          │
+          ▼
+   ByteTrack IDs
+          │
+          ▼
+ CLIP Re-ID Extraction
+          │
+          ▼
+ Qdrant Vector Database
+          │
+          ▼
+ ROI & Boundary Filtering
+          │
+          ▼
+Trajectory History
+          │
+          ▼
+   EMA Smoothing
+          │
+          ▼
+K-Means Traffic Calibration
+          │
+          ▼
+Wrong-Way Verification
+          │
+          ▼
+Violation Detection
+          │
+          ├───────────────┐
+          ▼               ▼
+    Evidence           JSON Logs
+    Snapshots
+          │
+          ▼
+ OpenCV HUD Rendering
+          │
+          ├───────────────┐
+          ▼               ▼
+ Processed Video     Live MJPEG Stream
+                          │
+                          ▼
+                  Web Dashboard
 ```
-
-Open the address in your browser.
 
 ---
 
-# 🔄 Running the Full Application
+# 🚦 Intelligent Traffic Monitoring
 
-You need two terminals.
+The system combines multiple computer vision and deep learning components into a unified traffic intelligence pipeline capable of:
 
-## Terminal 1 — Backend
+* Vehicle detection
+* Persistent vehicle tracking
+* Cross-stream vehicle re-identification
+* Traffic-flow calibration
+* Wrong-way movement detection
+* ROI-based filtering
+* Camera stabilization
+* Trajectory analysis
+* Evidence capture
+* Structured violation logging
+* Live dashboard visualization
+
+---
+
+# 📸 Evidence & Violation Archiving
+
+For confirmed violations, the system automatically provides:
+
+```text
+┌───────────────────────────────┐
+│      Wrong-Way Violation      │
+├───────────────────────────────┤
+│                               │
+│  High-Resolution JPEG         │
+│  Vehicle Identification       │
+│  Direction Analysis            │
+│  Structured JSON Log           │
+│                               │
+└───────────────────────────────┘
+```
+
+This creates a structured record of detected traffic violations for further inspection and analysis.
+
+---
+
+# 🌐 Web Dashboard
+
+The frontend provides a modern monitoring interface built with:
+
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+
+The backend exposes the processed traffic stream through an MJPEG stream while the system performs real-time computer vision processing.
+
+---
+
+# 🧩 Core Computer Vision Components
+
+```text
+┌──────────────────────────────────────┐
+│          Computer Vision Layer       │
+├──────────────────────────────────────┤
+│                                      │
+│  ORB          → Camera Stabilization │
+│  YOLOv11n     → Vehicle Detection    │
+│  ByteTrack    → Object Tracking      │
+│  CLIP         → Visual Re-ID         │
+│  Qdrant       → Vector Search        │
+│  ROI          → Road Filtering       │
+│  EMA          → Trajectory Smoothing │
+│  K-Means      → Flow Calibration     │
+│                                      │
+└──────────────────────────────────────┘
+```
+
+---
+
+# 🚀 Quick Start
+
+### Backend
 
 ```powershell
 cd backend
+
+python -m venv venv
 .\venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+
 uvicorn main:app --reload
 ```
 
-## Terminal 2 — Frontend
+### Frontend
 
-```powershell
+```bash
 cd frontend
-npm run dev
-```
 
-Then open:
-
-```text
-http://localhost:3000
-```
-
----
-
-
-For wrong-way detection testing, traffic videos should ideally have:
-
-- A stable camera
-- Clear road lanes
-- Multiple vehicles
-- Visible vehicle movement
-- Minimal camera movement
-- Clear separation between traffic directions
-
-An elevated or top-down traffic-camera view is particularly useful because the direction of vehicle movement is easier to determine.
-
----
-
-# 🚦 Wrong-Way Detection
-
-The wrong-way detection system uses vehicle trajectories.
-
-Suppose normal traffic direction is:
-
-```text
-              ↓
-              ↓
-              ↓
-              ↓
-        NORMAL TRAFFIC
-```
-
-If a tracked vehicle moves:
-
-```text
-              ↑
-              ↑
-              ↑
-              ↑
-        WRONG-WAY VEHICLE
-```
-
-the system can flag that vehicle.
-
-## Direction Calculation
-
-For a tracked vehicle, multiple center points can be collected:
-
-```text
-P1 = (400, 200)
-P2 = (405, 220)
-P3 = (410, 240)
-P4 = (415, 260)
-```
-
-The movement vector can be estimated as:
-
-```text
-Movement Vector = Last Position - First Position
-```
-
-Example:
-
-```text
-Start = (400, 200)
-End   = (415, 260)
-
-Vector = (15, 60)
-```
-
-The resulting movement vector is compared with the expected road direction.
-
----
-
-# 🧮 Cosine Similarity for Direction
-
-The relationship between two vectors can be calculated using cosine similarity:
-
-```text
-cos(θ) = (A · B) / (||A|| × ||B||)
-```
-
-Where:
-
-```text
-A = Expected Road Direction
-B = Vehicle Movement Direction
-```
-
-Conceptually:
-
-```text
-Same Direction
-
-A ↓
-B ↓
-
-Similarity → Positive
-```
-
-```text
-Opposite Direction
-
-A ↓
-B ↑
-
-Similarity → Negative
-```
-
-A threshold can then be used to classify movement. The exact threshold should be tuned using representative traffic footage.
-
----
-
-# 🧭 Direction Analysis Over Multiple Frames
-
-A robust system should not classify a vehicle as wrong-way based on one frame.
-
-Instead:
-
-```text
-Frame 1
-   ↓
-Frame 2
-   ↓
-Frame 3
-   ↓
-Frame 4
-   ↓
-Frame 5
-   ↓
-Calculate Trajectory
-   ↓
-Calculate Direction
-   ↓
-Compare With Expected Flow
-   ↓
-Confirm Wrong-Way
-   ↓
-Generate Alert
-```
-
-This helps reduce false positives.
-
----
-
-# 🚗 Vehicle Tracking Example
-
-```text
-Frame 100
-
-ID 1 → Car
-ID 2 → Truck
-ID 3 → Bus
-```
-
-Next frame:
-
-```text
-Frame 101
-
-ID 1 → Car
-ID 2 → Truck
-ID 3 → Bus
-```
-
-Next frame:
-
-```text
-Frame 102
-
-ID 1 → Car
-ID 2 → Truck
-ID 3 → Bus
-```
-
-The same IDs allow the system to maintain vehicle trajectories.
-
----
-
-# 🧠 ResNet-18 Feature Extraction
-
-For every selected vehicle crop:
-
-```text
-Vehicle
-   ↓
-Bounding Box
-   ↓
-Crop
-   ↓
-Resize
-   ↓
-Normalize
-   ↓
-ResNet-18
-   ↓
-Feature Vector
-   ↓
-L2 Normalization
-```
-
-The resulting embedding represents visual characteristics of the vehicle.
-
----
-
-# 🗄️ Qdrant Vector Search
-
-The vector database stores vehicle embeddings.
-
-Example:
-
-```text
-Vehicle A
-Embedding A
-     │
-     ▼
-   Qdrant
-     │
-     ├── Vehicle B → Similarity 0.92
-     ├── Vehicle C → Similarity 0.78
-     └── Vehicle D → Similarity 0.43
-```
-
-This allows the system to retrieve visually similar vehicles.
-
----
-
-# 🔁 Re-Identification Workflow
-
-```text
-New Vehicle
-     │
-     ▼
-Extract Crop
-     │
-     ▼
-ResNet-18
-     │
-     ▼
-Embedding
-     │
-     ▼
-Qdrant Search
-     │
-     ▼
-Find Similar Vehicle
-     │
-     ▼
-Compare Similarity
-```
-
----
-
-# 📸 Vehicle Screenshots
-
-The system can capture vehicle screenshots when specific events occur.
-
-Example:
-
-```text
-Vehicle Detected
-       ↓
-Track Vehicle
-       ↓
-Wrong-Way Confirmed
-       ↓
-Capture Screenshot
-       ↓
-Save Screenshot
-       ↓
-Display In Dashboard
-```
-
-Example directory:
-
-```text
-backend/
-└── screenshots/
-    ├── vehicle_1.jpg
-    ├── vehicle_7.jpg
-    └── vehicle_17.jpg
-```
-
----
-
-# 🌐 Frontend Dashboard
-
-The Next.js dashboard can provide a visual interface for the AI system.
-
-Typical information includes:
-
-### Live Video
-
-```text
-┌──────────────────────────────────┐
-│                                  │
-│          TRAFFIC VIDEO           │
-│                                  │
-│     Vehicle 1   Vehicle 2        │
-│                                  │
-│            Vehicle 3             │
-│                                  │
-└──────────────────────────────────┘
-```
-
-### Vehicle Information
-
-```text
-Vehicle ID: 12
-Class: Car
-Confidence: 0.94
-Status: Tracking
-```
-
-### Wrong-Way Alert
-
-```text
-┌─────────────────────────────┐
-│      WRONG-WAY ALERT        │
-├─────────────────────────────┤
-│ Vehicle ID: 17             │
-│ Type: Car                  │
-│ Direction: Opposite        │
-│ Confidence: 94%            │
-└─────────────────────────────┘
-```
-
----
-
-# 🔌 FastAPI Backend
-
-FastAPI acts as the communication layer between the computer-vision pipeline and frontend.
-
-Architecture:
-
-```text
-YOLO
- ↓
-ByteTrack
- ↓
-ReID
- ↓
-Wrong-Way Detection
- ↓
-FastAPI
- ↓
-Next.js
-```
-
-FastAPI can provide endpoints for:
-
-- Video status
-- Detection information
-- Tracking information
-- Wrong-way alerts
-- Screenshots
-- Vehicle data
-
----
-
-# 📡 API Documentation
-
-When the backend is running, open:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-FastAPI provides an interactive Swagger interface where available endpoints can be tested.
-
----
-
-# ⚡ Performance
-
-System performance depends on:
-
-- YOLO model size
-- Input resolution
-- Video FPS
-- Number of vehicles
-- CPU/GPU
-- ResNet-18 inference frequency
-- Qdrant search frequency
-- Tracking configuration
-
-For better performance, ReID does not necessarily need to run on every frame.
-
-Example:
-
-```text
-Frame 1 → Detection + Tracking
-Frame 2 → Detection + Tracking
-Frame 3 → Detection + Tracking
-Frame 4 → Detection + Tracking + ReID
-Frame 5 → Detection + Tracking
-Frame 6 → Detection + Tracking
-Frame 7 → Detection + Tracking + ReID
-```
-
----
-
-# 🖥️ CPU and GPU
-
-The system can run on CPU, but GPU acceleration is recommended for real-time performance.
-
-Check CUDA availability:
-
-```python
-import torch
-
-print(torch.cuda.is_available())
-```
-
-If the result is:
-
-```text
-True
-```
-
-PyTorch can use a compatible CUDA device.
-
-If:
-
-```text
-False
-```
-
-the system can still run using CPU.
-
----
-
-# 🧪 Testing
-
-A useful test video should contain:
-
-```text
-Normal Vehicles
-
-Car       → → →
-Truck     → → →
-Bus       → → →
-
-Wrong-Way Vehicle
-
-Car       ← ← ←
-```
-
-The system should:
-
-1. Detect vehicles.
-2. Assign tracking IDs.
-3. Maintain IDs across frames.
-4. Record vehicle trajectories.
-5. Calculate movement direction.
-6. Compare movement with expected traffic direction.
-7. Detect the wrong-way vehicle.
-8. Generate an alert.
-9. Display the event on the dashboard.
-
----
-
-# 🧪 Example Detection Result
-
-```json
-{
-  "track_id": 17,
-  "vehicle_class": "car",
-  "confidence": 0.94,
-  "direction": "opposite",
-  "wrong_way": true
-}
-```
-
-Example frontend representation:
-
-```text
-================================
-        WRONG-WAY ALERT
-================================
-
-Vehicle ID    : 17
-Vehicle Type  : Car
-Confidence    : 94%
-Direction     : Opposite
-Wrong Way     : YES
-
-================================
-```
-
----
-
-# 🔍 Troubleshooting
-
-## Backend Does Not Start
-
-Check Python:
-
-```bash
-python --version
-```
-
-Activate the virtual environment:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run:
-
-```bash
-uvicorn main:app --reload
-```
-
----
-
-## `ModuleNotFoundError`
-
-If you receive:
-
-```text
-ModuleNotFoundError: No module named 'ultralytics'
-```
-
-install:
-
-```bash
-pip install ultralytics
-```
-
-Or reinstall all dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Frontend Does Not Start
-
-Check Node:
-
-```bash
-node --version
-```
-
-Check npm:
-
-```bash
-npm --version
-```
-
-Install:
-
-```bash
 npm install
-```
 
-Run:
-
-```bash
 npm run dev
 ```
 
----
-
-## Video Does Not Open
-
-Check the video:
-
-```python
-import cv2
-
-video = cv2.VideoCapture("videos/traffic.mp4")
-
-print("Opened:", video.isOpened())
-print("Frames:", int(video.get(cv2.CAP_PROP_FRAME_COUNT)))
-print("FPS:", video.get(cv2.CAP_PROP_FPS))
-print("Width:", int(video.get(cv2.CAP_PROP_FRAME_WIDTH)))
-print("Height:", int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-
-video.release()
-```
-
-If:
+### Open the application
 
 ```text
-Opened: False
-```
+Frontend:
+http://localhost:3000
 
-check:
+Backend:
+http://127.0.0.1:8000
 
-- File path
-- File permissions
-- Video format
-- File corruption
-- OpenCV/FFmpeg installation
+Swagger:
+http://127.0.0.1:8000/docs
 
----
-
-## Vehicle IDs Change Frequently
-
-Possible causes:
-
-- Vehicle occlusion
-- Poor lighting
-- Motion blur
-- Low FPS
-- Small vehicle size
-- Low detection confidence
-- Vehicles overlapping
-- Fast movement
-- Camera movement
-
-Possible improvements:
-
-- Tune YOLO confidence.
-- Tune ByteTrack parameters.
-- Improve video quality.
-- Use a better camera angle.
-- Use ReID for additional association.
-- Increase tracking history.
-
----
-
-## Wrong-Way False Positives
-
-Wrong-way detection may produce false positives when:
-
-- A vehicle stops.
-- A vehicle changes lanes.
-- A vehicle turns.
-- The camera moves.
-- Tracking temporarily jumps.
-- The vehicle is heavily occluded.
-
-A better approach is to use a time window:
-
-```text
-Vehicle Track
-     ↓
-Collect Multiple Positions
-     ↓
-Smooth Trajectory
-     ↓
-Calculate Direction
-     ↓
-Compare With Expected Flow
-     ↓
-Require Multiple Confirmations
-     ↓
-Generate Alert
+ReDoc:
+http://127.0.0.1:8000/redoc
 ```
 
 ---
 
-# 🔐 Environment Variables
+# 📄 License
 
-Sensitive information should be stored in environment variables.
-
-Example:
-
-```env
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=
-```
-
-For the frontend:
-
-```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
-```
-
-Do not commit secret keys to GitHub.
+This project is open-source and available under the **MIT License**.
 
 ---
-
-# 📝 Recommended `.gitignore`
-
-```gitignore
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-
-# Virtual environment
-venv/
-.venv/
-env/
-
-# Environment files
-
-# Node
-node_modules/
-.next/
-out/
-
-# Qdrant
-qdrant_db/
-
-# Generated files
-screenshots/
-
-# Video files
-*.mp4
-*.avi
-*.mov
-*.mkv
-
-
-
----
-
-

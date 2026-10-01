@@ -14,7 +14,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Scrollbar styling for violation snapshot sidebar */
+/* Custom Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -34,29 +34,27 @@ body {
   background: #475569;
 }
 
-/* Stream feed, video, and canvas constraints (fixes vertical scaling issues) */
-video, canvas, .stream-media {
+/* Fixed container rules preventing distortion */
+canvas, .stream-media {
   outline: none;
   background-color: #020617;
-  max-width: 100%;
-  max-height: 70vh;       /* Caps the height so vertical videos don't dominate the screen */
-  width: auto;            /* Auto adjusts width for portrait feeds */
-  height: auto;           /* Auto adjusts height for landscape feeds */
-  object-fit: contain;    /* Prevents distortion and awkward stretching */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
-  margin: 0 auto;         /* Centers the stream */
+  margin: 0 auto;
 }
 
-/* Responsive container wrapper */
+/* Responsive container wrapper enforcing 16:9 aspect ratio */
 .video-player-wrapper {
   width: 100%;
+  aspect-ratio: 16 / 9;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #020617;
   border-radius: 0.5rem;
   overflow: hidden;
-  max-height: 70vh;
 }
 
 /* Glassmorphism subtle overlay helper class */
