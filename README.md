@@ -3,6 +3,8 @@
 # 🚗 AI Vehicle Tracking & Wrong-Way Detection System
 
 <img src="image.png" alt="System Dashboard" width="90%"/>
+
+# Poster OF AI Vehicle Tracking & Wrong-Way Detection System
 <img src="AI Vehicle Tracking README Poster.png" alt="System Dashboard" width="90%"/>
 
 
@@ -158,19 +160,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🎬 Demonstration
 
-Include a GIF or screenshot of your tracking dashboard here.
-
-```markdown
-![System Dashboard](assets/demo.png)
-```
 
 ## 📁 Project Structure
 
 ```plaintext
 ├── backend/
-│   ├── models/                  # ONNX & PyTorch weights
+│   ├── yolo11m.pt               #model used for detection
 │   ├── qdrant_db/               # Local Qdrant vector database storage
 │   ├── custom_bytetrack.yaml    # Customized ByteTrack config
 │   ├── pipeline.py              # YOLO, Tracking, Re-ID & Wrong-Way logic
