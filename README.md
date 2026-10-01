@@ -1,486 +1,189 @@
-# 🚀 AI-Driven Intelligent Traffic & Wrong-Way Detection System
+<div align="center">
 
-> **Enterprise-grade real-time computer vision platform for intelligent traffic monitoring, multi-lane wrong-way violation detection, and cross-stream vehicle re-identification.**
+# 🚗 AI Vehicle Tracking & Wrong-Way Detection System
 
-An enterprise-grade, real-time computer vision and deep learning platform engineered for autonomous traffic monitoring, multi-lane wrong-way violation detection, and cross-stream vehicle re-identification.
+<img src="image.png" alt="System Dashboard" width="90%"/>
+<img src="AI Vehicle Tracking README Poster.png" alt="System Dashboard" width="90%"/>
+
+
+<br/>
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![YOLO11](https://img.shields.io/badge/YOLO11-Ultralytics-00FFFF?style=for-the-badge&logo=yolo&logoColor=black)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![ONNX](https://img.shields.io/badge/ONNX_Runtime-005CED?style=for-the-badge&logo=onnx&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?style=for-the-badge&logo=qdrant&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+
+</div>
+
+A real-time AI-powered traffic monitoring solution designed to detect vehicles, track them across frames, assign unified re-identification (Re-ID) IDs, and flag wrong-way driving violations on multi-lane highways.
+
+The system features a **FastAPI** backend for video processing and vector database operations, alongside a **Next.js / React** frontend for real-time video streaming, lane calibration, and violation monitoring.
 
 ---
 
-## 📌 System Architecture & Pipeline
+## ✨ Key Features
+
+* 🎯 **High-Resolution Object Detection**: Powered by **YOLO11** running at native frame resolution (`imgsz=1280`) to reliably catch small, distant vehicles near the horizon.
+
+* 🔗 **Multi-Object Tracking**: Uses **ByteTrack** with customized track initialization and persistence thresholds to maintain stable trajectories for fast-moving targets.
+
+* 🧬 **Vehicle Re-Identification (Re-ID)**: Integrates an **OSNet** feature extractor paired with **Qdrant Vector Database** to maintain consistent vehicle identity across track losses.
+
+* 🚨 **Wrong-Way Driving Detection**: Automated trajectory analysis based on lane calibration points to detect vehicles traveling against the flow of traffic.
+
+* 🛣️ **Interactive Lane Calibration**: Web GUI allowing operators to draw and calibrate upward and downward travel lanes directly on live camera feeds.
+
+* 📸 **Violation Capture**: Auto-captures and logs cropped violation snapshots with timestamps and unique IDs upon persistent wrong-way detection.
+
+---
+
+## 🏗️ Architecture Overview
 
 ```text
-       [ Input Video File / Live Video Stream ]
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│               1. ORB Camera Stabilizer                 │
-│  (Neutralizes camera bumps, vibrations, and drift)     │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│           2. YOLOv11n + ByteTrack Engine               │
-│  (Detects target vehicles and tracks persistent IDs)   │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│       3. CLIP Re-ID Extractor & Qdrant Vector DB       │
-│  (Computes 512-D embeddings for cross-stream ReID)     │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│        4. ROI Polygon & Edge Boundary Filtering        │
-│  (Isolates active roadways & filters background noise) │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│       5. Trajectory History & EMA Smoothing             │
-│  (Smooths center points to calculate vectors & speed)  │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│   6. K-Means Traffic Calibration & Adaptive Detection  │
-│  (Clusters initial flows & detects inverse movement)   │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│   7. Violation Flagging & Evidence Archiving           │
-│  (Captures high-res JPEGs & builds structured JSON logs)│
-└─────────────────────────┬──────────────────────────────┘
-                          │
-                          ▼
-┌────────────────────────────────────────────────────────┐
-│          8. OpenCV Rendering & HUD Overlays            │
-│  (Draws persistent Red boxes for violators & HUD)      │
-└─────────────────────────┬──────────────────────────────┘
-                          │
-         ┌────────────────┴────────────────┐
-         ▼                                 ▼
-┌──────────────────┐             ┌─────────────────────┐
-│  Processed Video │             │  Live MJPEG Stream  │
-│    File (.mp4)   │             │   (Web Dashboard)   │
-└──────────────────┘             └─────────────────────┘
+[ Video Stream / File Input ]
+
+              │
+
+              ▼
+
+    [ YOLO11 + ByteTrack ] ──(Detections & Bounding Boxes)
+
+              │
+
+              ▼
+
+   [ OSNet Feature Extractor ] ──(512-dim Embeddings)
+
+              │
+
+              ▼
+
+   [ Qdrant Vector DB ] ──(Cosine Similarity Match / Assign Re-ID)
+
+              │
+
+              ▼
+
+ [ Trajectory & Line Calibration Engine ] ──(Wrong-Way Check)
+
+              │
+
+              ▼
+
+[ FastAPI Stream / Next.js Dashboard ] ──(Real-time Canvas Overlay)
 ```
 
----
+## 🧰 Tech Stack
 
-# 🌟 Core Features
+### 🐍 Backend
 
-### 1. 🎥 ORB Camera Stabilization
+* Python 3.10+
+* FastAPI (ASGI Web Framework)
+* Ultralytics YOLO11 (Vehicle Detection)
+* ByteTrack (Multi-Object Tracking)
+* PyTorch & ONNX Runtime (OSNet Re-ID Feature Extraction)
+* Qdrant Client (Vector Similarity Search)
+* OpenCV & NumPy (Image Processing & Trajectory Math)
 
-Eliminates false motion triggers caused by wind drift, camera shake, or structural vibrations.
+### ⚛️ Frontend
 
-### 2. 🚗 YOLOv11n & ByteTrack
+* Next.js / React
+* TypeScript
+* Tailwind CSS
+* HTML5 Canvas (Interactive Line Calibration)
 
-Real-time multi-class vehicle detection covering:
+## ⚙️ Installation & Setup
 
-* Cars
-* Trucks
-* Buses
-* Motorcycles
-
-ByteTrack provides robust tracking persistence across occlusions.
-
-### 3. 🧠 CLIP Visual Re-Identification
-
-Leverages vision-language embeddings to uniquely identify vehicle appearances across independent streams and camera angles.
-
-### 4. 🗄️ Embedded Qdrant Vector Database
-
-Provides high-performance similarity search for fast, persistent vehicle re-identification payload matching.
-
-### 5. 📐 Dynamic ROI & Boundary Filtering
-
-Masks irrelevant regions such as:
-
-* Sidewalks
-* Background clutter
-* Non-road areas
-
-using polygon mapping and edge clipping checks.
-
-### 6. 📊 Unsupervised K-Means Traffic Calibration
-
-Automatically learns dominant multi-lane directional flows during startup without requiring manual road orientation configuration.
-
-### 7. ⚡ Adaptive Wrong-Way Verification
-
-Uses:
-
-* Exponential Moving Average (EMA) smoothing
-* Directional cosine similarity
-
-to catch inverse movement with zero false alarms.
-
-### 8. 📸 Automated Evidence Archiving
-
-Instantly captures high-resolution snapshots and generates structured JSON audit logs for all confirmed violations.
-
----
-
-# 🛠️ Technology Stack
-
-## Backend
-
-| Technology                 | Purpose                                 |
-| -------------------------- | --------------------------------------- |
-| **Python 3.10+**           | Core programming language               |
-| **FastAPI**                | Async REST API & MJPEG streaming        |
-| **PyTorch**                | Deep learning framework                 |
-| **Ultralytics YOLOv11**    | Vehicle detection                       |
-| **OpenCV**                 | Computer vision & video processing      |
-| **ORB**                    | Camera stabilization                    |
-| **Open_CLIP**              | Visual embedding extraction             |
-| **Qdrant Vector Database** | Vector storage & similarity retrieval   |
-| **NumPy / SciPy**          | Numerical and spatial matrix operations |
-
-## Frontend
-
-| Technology       | Purpose                          |
-| ---------------- | -------------------------------- |
-| **Next.js**      | Modern server-side rendered UI   |
-| **React**        | Interactive dashboard            |
-| **TypeScript**   | Type-safe client architecture    |
-| **Tailwind CSS** | Responsive utility-first styling |
-
----
-
-# 📁 Project Directory Structure
-
-```text
-AI-Vehicle-Tracking-and-Wrong-Way-Detection-System/
-│
-├── backend/
-│   ├── pipeline.py
-│   │   └── Core vision pipeline
-│   │       (Stabilizer, ReID, K-Means, Tracking)
-│   │
-│   ├── main.py
-│   │   └── FastAPI application and endpoint routing
-│   │
-│   └── requirements.txt
-│       └── Python package dependencies
-│
-├── frontend/
-│   ├── app/
-│   │   ├── globals.css
-│   │   │   └── Tailored UI styling & design tokens
-│   │   │
-│   │   ├── layout.tsx
-│   │   │   └── Root application layout wrapper
-│   │   │
-│   │   └── page.tsx
-│   │       └── Interactive monitoring dashboard & control center
-│   │
-│   ├── package.json
-│   │   └── Frontend npm dependencies & build scripts
-│   │
-│   ├── tailwind.config.js
-│   │   └── Styling configurations
-│   │
-│   └── tsconfig.json
-│       └── TypeScript compiler settings
-│
-├── .gitignore
-│
-└── README.md
-    └── Project technical documentation
-```
-
----
-
-# ⚙️ Installation & Setup
-
-## 1. Clone the Repository
+### 1. Repository Setup
 
 ```bash
 git clone https://github.com/nameluqman/AI-Vehicle-Tracking-and-Wrong-Way-Detection-System.git
-
 cd AI-Vehicle-Tracking-and-Wrong-Way-Detection-System
 ```
 
----
+### 2. Backend Setup
 
-## 2. Backend Setup
+Create and activate a Python virtual environment:
 
-Navigate to the backend directory:
+```bash
+python -m venv venv
+
+# On Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+
+# On Linux/macOS:
+source venv/bin/activate
+```
+
+Install backend dependencies:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+Start the FastAPI server:
 
 ```bash
 cd backend
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Create and activate virtual environment
+### 3. Frontend Setup
 
-For Windows PowerShell:
-
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-### Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Run FastAPI development server
-
-```bash
-uvicorn main:app --reload
-```
-
-Backend runs locally at:
-
-```text
-http://127.0.0.1:8000
-```
-
----
-
-## 3. Frontend Setup
-
-Open a separate terminal window and navigate to the frontend directory:
+Open a new terminal and navigate to the frontend directory:
 
 ```bash
 cd frontend
 ```
 
-### Install packages
+Install Node modules:
 
 ```bash
 npm install
 ```
 
-### Start development server
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Frontend runs locally at:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```text
-http://localhost:3000
+## 🎬 Demonstration
+
+Include a GIF or screenshot of your tracking dashboard here.
+
+```markdown
+![System Dashboard](assets/demo.png)
 ```
 
----
+## 📁 Project Structure
 
-# 🔌 API Documentation
-
-Once the backend service is running, interactive API documentation is available through FastAPI.
-
-### Swagger UI
-
-```text
-http://127.0.0.1:8000/docs
+```plaintext
+├── backend/
+│   ├── models/                  # ONNX & PyTorch weights
+│   ├── qdrant_db/               # Local Qdrant vector database storage
+│   ├── custom_bytetrack.yaml    # Customized ByteTrack config
+│   ├── pipeline.py              # YOLO, Tracking, Re-ID & Wrong-Way logic
+│   ├── main.py                  # FastAPI routes and streaming endpoints
+│   └── requirements.txt         # Python package dependencies
+├── frontend/
+│   ├── app/                     # Next.js pages and globals
+│   └── components/              # Interactive UI & Lane Calibration Canvas
+├── assets/                      # README images and documentation assets
+├── .gitignore                   # Excluded weights, DBs, and media files
+└── README.md
 ```
 
-### ReDoc
+## 📄 License
 
-```text
-http://127.0.0.1:8000/redoc
-```
-
----
-
-# 💡 Best Practices for Testing
-
-For optimal wrong-way detection performance:
-
-### 🎥 Use Elevated or Top-Down Footage
-
-Utilize elevated or top-down traffic camera footage.
-
-### 🛣️ Clear Lane Delineation
-
-Ensure clear lane delineation and stable vehicle trajectories.
-
-### 📺 Recommended Resolution
-
-Verify that the camera stream resolution is at least **720p** for high-accuracy CLIP feature extractions.
-
----
-
-# 🔄 End-to-End Processing Flow
-
-```text
-Input Video / Live Stream
-          │
-          ▼
-   ORB Stabilization
-          │
-          ▼
- YOLOv11n Detection
-          │
-          ▼
-   ByteTrack IDs
-          │
-          ▼
- CLIP Re-ID Extraction
-          │
-          ▼
- Qdrant Vector Database
-          │
-          ▼
- ROI & Boundary Filtering
-          │
-          ▼
-Trajectory History
-          │
-          ▼
-   EMA Smoothing
-          │
-          ▼
-K-Means Traffic Calibration
-          │
-          ▼
-Wrong-Way Verification
-          │
-          ▼
-Violation Detection
-          │
-          ├───────────────┐
-          ▼               ▼
-    Evidence           JSON Logs
-    Snapshots
-          │
-          ▼
- OpenCV HUD Rendering
-          │
-          ├───────────────┐
-          ▼               ▼
- Processed Video     Live MJPEG Stream
-                          │
-                          ▼
-                  Web Dashboard
-```
-
----
-
-# 🚦 Intelligent Traffic Monitoring
-
-The system combines multiple computer vision and deep learning components into a unified traffic intelligence pipeline capable of:
-
-* Vehicle detection
-* Persistent vehicle tracking
-* Cross-stream vehicle re-identification
-* Traffic-flow calibration
-* Wrong-way movement detection
-* ROI-based filtering
-* Camera stabilization
-* Trajectory analysis
-* Evidence capture
-* Structured violation logging
-* Live dashboard visualization
-
----
-
-# 📸 Evidence & Violation Archiving
-
-For confirmed violations, the system automatically provides:
-
-```text
-┌───────────────────────────────┐
-│      Wrong-Way Violation      │
-├───────────────────────────────┤
-│                               │
-│  High-Resolution JPEG         │
-│  Vehicle Identification       │
-│  Direction Analysis            │
-│  Structured JSON Log           │
-│                               │
-└───────────────────────────────┘
-```
-
-This creates a structured record of detected traffic violations for further inspection and analysis.
-
----
-
-# 🌐 Web Dashboard
-
-The frontend provides a modern monitoring interface built with:
-
-* Next.js
-* React
-* TypeScript
-* Tailwind CSS
-
-The backend exposes the processed traffic stream through an MJPEG stream while the system performs real-time computer vision processing.
-
----
-
-# 🧩 Core Computer Vision Components
-
-```text
-┌──────────────────────────────────────┐
-│          Computer Vision Layer       │
-├──────────────────────────────────────┤
-│                                      │
-│  ORB          → Camera Stabilization │
-│  YOLOv11n     → Vehicle Detection    │
-│  ByteTrack    → Object Tracking      │
-│  CLIP         → Visual Re-ID         │
-│  Qdrant       → Vector Search        │
-│  ROI          → Road Filtering       │
-│  EMA          → Trajectory Smoothing │
-│  K-Means      → Flow Calibration     │
-│                                      │
-└──────────────────────────────────────┘
-```
-
----
-
-# 🚀 Quick Start
-
-### Backend
-
-```powershell
-cd backend
-
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-
-pip install -r requirements.txt
-
-uvicorn main:app --reload
-```
-
-### Frontend
-
-```bash
-cd frontend
-
-npm install
-
-npm run dev
-```
-
-### Open the application
-
-```text
-Frontend:
-http://localhost:3000
-
-Backend:
-http://127.0.0.1:8000
-
-Swagger:
-http://127.0.0.1:8000/docs
-
-ReDoc:
-http://127.0.0.1:8000/redoc
-```
-
----
-
-# 📄 License
-
-This project is open-source and available under the **MIT License**.
-
----
+Distributed under the MIT License. See LICENSE for more information.
