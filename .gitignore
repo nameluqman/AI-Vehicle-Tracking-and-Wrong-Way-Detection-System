@@ -23,10 +23,6 @@ __pycache__/
 *$py.class
 
 # Output & Temporary Media Files
-*.mp4
-*.avi
-*.jpg
-*.png
 violations/
 **/violations/
 media/
